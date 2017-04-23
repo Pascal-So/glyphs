@@ -36,8 +36,9 @@ class Edge implements Comparable<Edge> {
     
 }
 
+// undirected, weighted graph
 class Graph {
-    private ArrayList<ArrayList<Edge> > nodes;
+    private ArrayList<ArrayList<Edge> > nodes; // start is always the current index, destination may be bigger or smaller than current index.
 
     public Graph() {
         nodes = new ArrayList<ArrayList<Edge> >();
@@ -57,9 +58,7 @@ class Graph {
         }
     }
 
-
-
-    private ArrayList<Edge> getEdges() {
+    private ArrayList<Edge> getEdges() { // returns only one edge per nodepair, start is always lower than destination
         ArrayList<Edge> edges = new ArrayList<Edge>();
         for (int i = 0; i < nodes.size(); i++) {
             for (Edge e : nodes.get(i)) {
@@ -72,15 +71,43 @@ class Graph {
         return edges;
     }
 
+    public boolean hasEdge(int start, int destination){
+        for(Edge e:nodes.get(start)){
+            if(e.destination == destination){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void insertEdge(int start, int destination, double weight){ // adds both directions
+        if(hasEdge(start, destination)){
+            return;
+        }
+        
+        Edge e = new Edge(start, destination, weight);
+        Edge flipped = new Edge(e);
+        flipped.flip();
+        
+        nodes.get(start).add(e);
+        nodes.get(destination).add(flipped);
+    }
+
     public Graph mst() {
         ArrayList<Edge> used = new ArrayList<Edge>();
         ArrayList<Edge> allEdges = getEdges();
         
         Collections.sort(allEdges);
         
-        UnionFinder u = new UnionFinder(nodes.size());
+        UnionFinder union = new UnionFinder(nodes.size());
         
+        for(Edge e:allEdges){
+            if( ! union.isUnited(e.start, e.destination)){
+                union.unite(e.start, e.destination);
+                used.add(e);
+            }
+        }
         
-        return new Graph();
+        return new Graph(nodes.size(), used);
     }
 }
