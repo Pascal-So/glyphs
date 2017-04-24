@@ -61,7 +61,7 @@ class Graph {
         }
     }
 
-    private ArrayList<Edge> getEdges() { // returns only one edge per nodepair, start is always lower than destination
+    public ArrayList<Edge> getEdges() { // returns only one edge per nodepair, start is always lower than destination
         ArrayList<Edge> edges = new ArrayList<Edge>();
         for (int i = 0; i < nodes.size(); i++) {
             for (Edge e : nodes.get(i)) {

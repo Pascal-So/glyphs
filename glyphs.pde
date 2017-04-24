@@ -32,12 +32,33 @@ Graph createGridGraph(int width, int height, double weight){
 
 class Glyph {
     Graph tree;
+    int width, height;
     
     public Glyph(int width, int height){
+        this.width = width;
+        this.height = height;
         Graph g = createGridGraph(width, height, 1d);
         g.randomizeWeights();
         tree = g.mst();
-        g = null;
+    }
+    
+    
+    private PVector getGridPosition(int index){
+        int x = index % width;
+        int y = index / width;
+        
+        return new PVector(x, y);
+    }
+
+    
+    public void drawGlyph(int raster_size, int x, int y){
+        ArrayList<Edge> edges = tree.getEdges();
+        PVector offset = new PVector(x, y);
+        for(Edge e : edges){
+            PVector start = getGridPosition(e.start).mult(raster_size).add(offset);
+            PVector destination = getGridPosition(e.start).mult(raster_size).add(offset);
+            line(start.x, start.y, destination.x, destination.y);
+        }
     }
     
     public PShape toShape(int raster_size) {
@@ -50,10 +71,7 @@ class Glyph {
 
 
 void draw(){
-    beginShape();
-    vertex(0, 0);
-    vertex(0, 10);
-    vertex(10, 10);
-    vertex(10, 0);
-    endShape(CLOSE);
+    Glyph g = new Glyph(10, 5);
+    
+    g.drawGlyph(5, 100, 100);
 }
