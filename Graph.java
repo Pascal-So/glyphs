@@ -43,6 +43,9 @@ class Graph {
     public Graph() {
         nodes = new ArrayList<ArrayList<Edge> >();
     }
+    public Graph(int size) {
+        nodes = new ArrayList<ArrayList<Edge> >(size);
+    }
     public Graph(int size, ArrayList<Edge> edges){
         nodes = new ArrayList<ArrayList<Edge> >();
         for(int i = 0; i < size; i++){
@@ -80,10 +83,29 @@ class Graph {
         return false;
     }
 
-    public void insertEdge(int start, int destination, double weight){ // adds both directions
-        if(hasEdge(start, destination)){
-            return;
+    private void removeDirectedEdge(int start, int destination){
+        int index = -1;
+        for(int i = 0; i < nodes.get(start).size(); i++){
+            if(nodes.get(start).get(i).destination == destination){
+                index = i;
+                break;
+            }
         }
+        
+        if(index != -1){
+            nodes.get(start).remove(index);
+        }
+    }
+    
+    public void removeEdge(int start, int destination){
+        removeDirectedEdge(start, destination);
+        removeDirectedEdge(destination, start);
+    }
+
+    public void insertEdge(int start, int destination, double weight){ // adds both directions
+        // overwrites existing edges
+        removeEdge(start, destination);
+        
         
         Edge e = new Edge(start, destination, weight);
         Edge flipped = new Edge(e);
@@ -91,6 +113,16 @@ class Graph {
         
         nodes.get(start).add(e);
         nodes.get(destination).add(flipped);
+    }
+    
+    public void randomizeWeights(){
+        Random r = new Random();
+        
+        ArrayList<Edge> allEdges = getEdges();
+        for(Edge e : allEdges){
+            double newWeight = r.nextDouble();
+            insertEdge(e.start, e.destination, newWeight);
+        }
     }
 
     public Graph mst() {
