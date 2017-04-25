@@ -24,9 +24,10 @@ Outline is always axis aligned, doesn't have corners that aren't on a gridpoint.
 
 Find the inverse of the above conversion and show that it is defined on every possible cycle.
 
-Cycle is only possible for 2n * 2m grid graphs
-
 Flood fill cycle, check if it corresponds to valid tree.
+
+DOESN'T GENERATE EVERY VALID CONFIGURATION
+Method can only generate some cycles in 2n * 2m grid graphs
 
 ---
 
