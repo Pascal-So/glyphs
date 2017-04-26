@@ -151,7 +151,7 @@ class Graph {
     }
     
     public void randomizeWeights(){
-        Random r = new Random(43);
+        Random r = new Random();
         
         ArrayList<Edge> allEdges = getEdges();
         for(Edge e : allEdges){

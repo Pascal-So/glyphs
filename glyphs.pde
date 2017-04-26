@@ -1,15 +1,16 @@
 import java.util.*;
-int glyph_brightness = 200;
+color background_colour = color(33, 49, 64);
+color glyph_colour = color(236, 239, 241);
 
 void setup(){
     
     size(1080, 720);
-    background(35);
+    background(background_colour);
     
-    stroke(glyph_brightness);
+    stroke(glyph_colour);
     strokeCap(PROJECT);
-    strokeWeight(7);
-    fill(glyph_brightness);
+    strokeWeight(11);
+    fill(glyph_colour);
     noLoop();
 
 }
@@ -65,25 +66,27 @@ class Glyph {
     private ArrayList<Integer> treeTraversal(Graph g, final int startIndex, int parentIndex){
         ArrayList<Integer> destinations = g.getDestinations(startIndex);
 
-	ArrayList<Integer> destinationsByDirection = new ArrayList<Integer>();
-        for(int i = 0; i < 4; i++){
-	    destinationsByDirection.add(-1);
-	}
-
-	int parentDirection = getGridDirection(startInde, parentIndex);
-	
-	for(Integet dest:destinations){
-	    destinationsByDirection.set(getGridDirection(startIndex, dest), dest);
-	}
-
-	// noop for root node, because -1 must be to the left
-	destinationsByDirection.set(parentDirection, -1); 
+    	ArrayList<Integer> destinationsByDirection = new ArrayList<Integer>();
+            for(int i = 0; i < 4; i++){
+    	    destinationsByDirection.add(-1);
+    	}
+    
+    	int parentDirection = getGridDirection(startIndex, parentIndex);
+    	
+    	for(Integer dest:destinations){
+    	    destinationsByDirection.set(getGridDirection(startIndex, dest), dest);
+    	}
+    
+    	// noop for root node, because -1 must be to the left
+    	destinationsByDirection.set(parentDirection, -1); 
     
         ArrayList<Integer> out = new ArrayList<Integer>();
         
         for(int i = (parentDirection + 3) % 4; i != parentDirection; i = (i + 3) % 4){
-            out.add(startIndex);
-            out.addAll(treeTraversal(g, destinationsByDirection.get(i), startIndex));
+            if(destinationsByDirection.get(i) >= 0){
+                out.add(startIndex);
+                out.addAll(treeTraversal(g, destinationsByDirection.get(i), startIndex));
+            }
         }
         out.add(startIndex);
     
@@ -112,17 +115,15 @@ class Glyph {
         s = createShape();
         s.beginShape();
         s.noFill();
-        s.stroke(0);
-        s.strokeWeight(0.1);
+        s.strokeWeight(3/22);
 
-        PMatrix2D rotateClockwise = new PMatrix2D(0, 1, 0, -1, 0, 0);
+        PMatrix2D rotateClockwise = new PMatrix2D(0, -1, 0, 1, 0, 0);
 
         int nTrav = traversal.size();
 
         nTrav -- ;
         traversal.remove(nTrav);
 
-        println(traversal);
 
         for(int i = 0; i < nTrav; i++){
             int prev = traversal.get((i-1+nTrav) % nTrav);
@@ -132,20 +133,22 @@ class Glyph {
             int oldDir = getGridDirection(prev, current);
             int newDir = getGridDirection(current, next);
 
-            PVector corner = matrixPower(rotateClockwise, oldDir).mult(new PVector(-0.2, -0.2), null);
-            
+
+            PVector corner = matrixPower(rotateClockwise, 4-oldDir).mult(new PVector(0.25, -0.25), null);
+
             PVector gridPosition = getGridPosition(current);
 
-            PVector vertex;
+            PVector vertex = new PVector(0, 0);
 
-	    int diffDir = (newDir-oldDir+6)%4;
-	    
-	    for(int i = 0; i < diffDir; i++){
-                PVector.add(gridPosition, corner, vertex);
-                s.vertex(vertex.x, vertex.y);
-
-                corner = rotateClockwise.mult(corner);
-	    }
+    	    int diffDir = (oldDir-newDir+5)%4;
+    	    
+    	    for(int j = 0; j <= diffDir; j++){
+                    PVector.add(gridPosition, corner, vertex);
+                    s.vertex(vertex.x, vertex.y);
+    
+                    corner = rotateClockwise.mult(corner, null);
+                    
+    	    }
         }
         
         s.endShape(CLOSE);
@@ -165,39 +168,31 @@ ArrayList<PVector> getShapeVertecies(PShape s){
 void draw(){
     
 
-    int rasterSize = 14;
+    int rasterSize = 22;
     
     int glyphHeight = 3;
     int glyphWidth = 5;
     
-    /*for(int y = 20; y < height - rasterSize * glyphHeight; y += rasterSize * (glyphHeight + 1)){
+    for(int y = 20; y < height - rasterSize * glyphHeight; y += rasterSize * (glyphHeight + 1)){
         for(int x = 20; x < width - rasterSize * glyphWidth; x += rasterSize * (glyphWidth + 1)){
             Glyph g = new Glyph(glyphWidth, glyphHeight);
+            PShape outline = g.getOutline();
             g.drawTree(rasterSize, x, y);
+            outline.scale(rasterSize);
+    
+            //shape(outline, x, y);
+        
         }
-    }*/
+    }
     
-    Glyph g = new Glyph(glyphWidth, glyphHeight);
-    g.drawTree(rasterSize, 30, 30);
+    //Glyph g = new Glyph(glyphWidth, glyphHeight);
+    //g.drawTree(rasterSize, 30, 30);
     
-    PShape outline = g.getOutline();
+    //PShape outline = g.getOutline();
     
-    outline.scale(rasterSize); //<>//
+    //outline.scale(rasterSize); //<>//
     
-    shape(outline, 30, 30);
-    /*
-    PShape s = createShape();
-    
-    
-    s.beginShape();
-    
-    s.noFill();
-    s.vertex(300, 200);
-    s.vertex(300, 250);
-    s.vertex(350, 200);
-    s.endShape(CLOSE);
-    
-    shape(s, 0, 0);
-    */
-    text(outline.getVertexCount(), 400, 200);
+    //shape(outline, 150, 30);
+
+    //text(outline.getVertexCount(), 400, 200);
 }
