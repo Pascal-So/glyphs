@@ -64,38 +64,26 @@ class Glyph {
     
     private ArrayList<Integer> treeTraversal(Graph g, final int startIndex, int parentIndex){
         ArrayList<Integer> destinations = g.getDestinations(startIndex);
-    
-        Comparator<Integer> comp = new Comparator<Integer>() {
-            @Override
-            public int compare(Integer a, Integer b) {
-                return getGridDirection(startIndex, a) - getGridDirection(startIndex, b);
-            }
-        };
-    
-        Collections.sort(destinations, comp);
-    
-        // outedges are now sorted in clockwise direction (assuming (0, 0) is in the top left corner)
-    
-        int parentPos = -1;
-        int nOut = destinations.size();
-        
-        for(int i = 0; i < nOut; i++){
-            if(destinations.get(i) == parentIndex){
-                parentPos = i;
-                break;
-            }
-        }
-        if(parentPos == -1){
-            parentPos = 0;
-            destinations.add(0, -1);
-            // add a dummy value, this is safe because we must be in the top left corner
-        }
+
+	ArrayList<Integer> destinationsByDirection = new ArrayList<Integer>();
+        for(int i = 0; i < 4; i++){
+	    destinationsByDirection.add(-1);
+	}
+
+	int parentDirection = getGridDirection(startInde, parentIndex);
+	
+	for(Integet dest:destinations){
+	    destinationsByDirection.set(getGridDirection(startIndex, dest), dest);
+	}
+
+	// noop for root node, because -1 must be to the left
+	destinationsByDirection.set(parentDirection, -1); 
     
         ArrayList<Integer> out = new ArrayList<Integer>();
         
-        for(int i = (parentPos+1)%nOut; i != parentPos; i = (i+1) % nOut){
+        for(int i = (parentDirection + 3) % 4; i != parentDirection; i = (i + 3) % 4){
             out.add(startIndex);
-            out.addAll(treeTraversal(g, destinations.get(i), startIndex));
+            out.addAll(treeTraversal(g, destinationsByDirection.get(i), startIndex));
         }
         out.add(startIndex);
     
@@ -133,7 +121,6 @@ class Glyph {
 
         nTrav -- ;
         traversal.remove(nTrav);
-        //nTrav/=2;
 
         println(traversal);
 
@@ -142,37 +129,23 @@ class Glyph {
             int current = traversal.get(i);
             int next = traversal.get((i+1) % nTrav);
 
-            int dirOld = getGridDirection(prev, current);
-            int dirNew = getGridDirection(current, next);
+            int oldDir = getGridDirection(prev, current);
+            int newDir = getGridDirection(current, next);
 
-            PVector frontLeftCorner = matrixPower(rotateClockwise, dirOld).mult(new PVector(-0.2, 0.2), null);
-            PVector frontRightCorner = rotateClockwise.mult(frontLeftCorner, null);
-            PVector backRightCorner = rotateClockwise.mult(frontRightCorner, null);
-            PVector backLeftCorner = rotateClockwise.mult(backRightCorner, null);
-
+            PVector corner = matrixPower(rotateClockwise, oldDir).mult(new PVector(-0.2, -0.2), null);
+            
             PVector gridPosition = getGridPosition(current);
 
-            frontLeftCorner.add(gridPosition);
-            frontRightCorner.add(gridPosition);
-            backRightCorner.add(gridPosition);
-            backLeftCorner.add(gridPosition);
-            
-            
-            s.vertex(backLeftCorner.x, backLeftCorner.y);
+            PVector vertex;
 
-            
-            if(dirOld == (dirNew + 1) % 4){ // left bend
-                // don't add any vertecies
-            }else if(dirOld == dirNew){ // no bend
-                s.vertex(frontLeftCorner.x, frontLeftCorner.y);
-            }else if((dirOld + 1) % 4 == dirNew){ // right bend
-                s.vertex(frontLeftCorner.x, frontLeftCorner.y);
-                s.vertex(frontRightCorner.x, frontRightCorner.y);
-            }else{ // turnaround
-                s.vertex(frontLeftCorner.x, frontLeftCorner.y);
-                s.vertex(frontRightCorner.x, frontRightCorner.y);
-                s.vertex(backRightCorner.x, backRightCorner.y);
-            }
+	    int diffDir = (newDir-oldDir+6)%4;
+	    
+	    for(int i = 0; i < diffDir; i++){
+                PVector.add(gridPosition, corner, vertex);
+                s.vertex(vertex.x, vertex.y);
+
+                corner = rotateClockwise.mult(corner);
+	    }
         }
         
         s.endShape(CLOSE);
