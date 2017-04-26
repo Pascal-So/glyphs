@@ -4,12 +4,12 @@ color glyph_colour = color(236, 239, 241);
 
 void setup(){
     
-    size(1080, 720);
+    size(1850, 920);
     background(background_colour);
     
     stroke(glyph_colour);
     strokeCap(PROJECT);
-    strokeWeight(11);
+    strokeWeight(7);
     fill(glyph_colour);
     noLoop();
 
@@ -168,12 +168,12 @@ ArrayList<PVector> getShapeVertecies(PShape s){
 void draw(){
     
 
-    int rasterSize = 22;
+    int rasterSize = 14;
     
     int glyphHeight = 3;
     int glyphWidth = 5;
     
-    for(int y = 20; y < height - rasterSize * glyphHeight; y += rasterSize * (glyphHeight + 1)){
+    /*for(int y = 20; y < height - rasterSize * glyphHeight; y += rasterSize * (glyphHeight + 1)){
         for(int x = 20; x < width - rasterSize * glyphWidth; x += rasterSize * (glyphWidth + 1)){
             Glyph g = new Glyph(glyphWidth, glyphHeight);
             PShape outline = g.getOutline();
@@ -182,6 +182,24 @@ void draw(){
     
             //shape(outline, x, y);
         
+        }
+    }*/
+    
+    int glyphMinWidth = 2;
+    int glyphMaxWidth = 9;
+    
+    Random r = new Random();
+    
+    
+    // generate word like structures
+    for(int y = 20; y < height - rasterSize * glyphHeight; y += rasterSize * (glyphHeight + 1)){
+        for(int x = 20; x < width - rasterSize * glyphMaxWidth; x += rasterSize/2){
+            int len = r.nextInt(glyphMaxWidth - glyphMinWidth) + glyphMinWidth;
+            
+            Glyph g = new Glyph(len, glyphHeight);
+            g.drawTree(rasterSize, x, y);
+            
+            x += len * rasterSize;
         }
     }
     
