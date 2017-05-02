@@ -2,6 +2,15 @@
 
 #define point std::pair<int, int>
 
+
+/*
+
+A backtracking bruteforce approach to finding all hamiltonian cycles in an n*m grid graph.
+
+Pascal Sommer
+
+ */
+
 std::vector<point> adjacent_points(point p){
     std::vector<point> out;
     out.push_back({p.first + 1, p.second});
@@ -20,11 +29,11 @@ std::vector<std::vector<point> > hamilton_cycles_on_grid(int width, int height,
     ++ nr_visited;
 
     std::vector<point> adjacents;
-    /*if(start == current && start == std::make_pair(0, 0)){
+    if(start == current && start == std::make_pair(0, 0)){
 	adjacents.push_back({1, 0});
-	}else{*/
+    }else{
 	adjacents = adjacent_points(current);
-	//}
+    }
     for(auto p:adjacents){
 	//std::cout<<p.first << " " << p.second << std::endl;
 	if(p.first < 0 || p.second < 0 || p.first >= width || p.second >= height){
@@ -49,6 +58,11 @@ std::vector<std::vector<point> > hamilton_cycles_on_grid(int width, int height,
     -- nr_visited;
 
     return out;
+}
+
+std::vector<std::vector<point> > hamilton_cycles_on_grid(int width, int height){
+    std::vector<std::vector<bool> > empty_visited (height, std::vector<bool> (width, false));
+    return hamilton_cycles_on_grid(width, height, {0, 0}, {0, 0}, empty_visited, 0);
 }
 
 int get_area(std::vector<point> & cycle){
@@ -178,7 +192,7 @@ std::vector<T> uniq(const std::vector<T> & in){
 }
 
 void normalize_set(std::vector<std::vector<point> > & cycles){
-    for(int i = 0; i < cycles.size(); ++i){
+    for(size_t i = 0; i < cycles.size(); ++i){
 	cycles[i] = normalize(cycles[i]);
     } 
 
@@ -187,24 +201,56 @@ void normalize_set(std::vector<std::vector<point> > & cycles){
     cycles = uniq(cycles);
 }
 
-void draw_cycle(const std::vector<point> & cycle){
+std::vector<std::vector<point> > get_adjacency_list(const std::vector<point> &cycle){
+    point dimensions = get_dimensions(cycle);
+
+    int n = cycle.size();
+
+    std::vector<std::vector<point> > adj (dimensions.second, std::vector<point> (dimensions.first));
     
+    for(int i = 0; i < n; ++i){
+	adj[cycle[i].second][cycle[i].first] = cycle[(i+1)%n];
+    }
+    return adj;
+}
+
+bool is_inside_cycle(const std::vector<point> &cycle, int x, int y){
+    // note that these x and y coordinates correspond to a field between grid lines
+    
+    auto adj = get_adjacency_list(cycle);
+
+    bool edge_to_the_left = adj[y][x] == std::make_pair(x, y+1) || adj[y+1][x] == std::make_pair(x, y);
+    
+    if(x == 0){
+	return edge_to_the_left;
+    }else{
+	return is_inside_cycle(cycle, x-1, y) ^ edge_to_the_left;
+    }
+}
+
+void draw_cycle(const std::vector<point> & cycle){
+    point dimensions = get_dimensions(cycle);
+
+    for(int y = 0; y < dimensions.second -1; ++y){
+	for(int x = 0; x < dimensions.first -1; ++x){
+	    std::cout<< (is_inside_cycle(cycle, x, y) ? "# " : "  ");
+	}
+	std::cout<<"\n";
+    }
 }
 
 int main(){
     int width = 6;
-    int height = 5;
+    int height = 8;
+
+    std::cin >> width >> height;
     
-    std::vector<std::vector<bool> > empty_visited (height, std::vector<bool> (width, false));
-    auto cycles = hamilton_cycles_on_grid(width, height, {0, 0}, {0, 0}, empty_visited, 0);
+    auto cycles = hamilton_cycles_on_grid(width, height);
 
     normalize_set(cycles);
-    
-    for(auto & cycle:norm_cycles){
-	for(auto p:cycle){
-	    std::cout<<"(" << p.first << ", " << p.second << ") | ";
-	}
-	std::cout<<"  area = " << get_area(cycle);
+
+    for(auto &cycle:cycles){
+	draw_cycle(cycle);
 	std::cout<<"\n";
     }
 }
